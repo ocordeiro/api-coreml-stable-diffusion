@@ -8,6 +8,7 @@ import CoreGraphics
 import CoreML
 import UniformTypeIdentifiers
 
+
 var prompt: String = "a cat"
 var imageCount: Int = 1
 var stepCount: Int = 10
@@ -19,8 +20,7 @@ var guidanceScale: Float = 7.5
 
 router.get("/") { request, response, next in
 
-    response.send("Hello world!")
-
+    response.headers["Content-Type"] = "image/png"
 
     let config = MLModelConfiguration()
 
@@ -60,12 +60,21 @@ router.get("/") { request, response, next in
             return true
         }
 
-        _ = try saveImages(images, logNames: true)
+        for i in 0 ..< images.count {
+            let image = images[i]
 
+            let imageData = CFDataCreateMutable(nil, 0)
+            let destination = CGImageDestinationCreateWithData(imageData!, UTType.png.identifier as CFString, 1, nil)
 
+            CGImageDestinationAddImage(destination!, image!, nil)
+            CGImageDestinationFinalize(destination!)
+
+            let data = imageData! as Data
+            response.send(data:data)
+
+        }
     }
 
-    response.send("Hello world!")
     next()
 }
 
