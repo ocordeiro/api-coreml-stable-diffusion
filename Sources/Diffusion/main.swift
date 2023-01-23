@@ -3,8 +3,6 @@ import StableDiffusion
 
 let router = Router()
 import Foundation
-import SwiftUI
-import Combine
 import StableDiffusion
 
 router.get("/") { request, response, next in
