@@ -8,17 +8,28 @@ import CoreGraphics
 import CoreML
 import UniformTypeIdentifiers
 
-
-var prompt: String = "a cat"
 var imageCount: Int = 1
-var stepCount: Int = 10
+var stepCount: Int = 20
 var seed: UInt32 = 93
 var outputPath: String = "./"
 var saveEvery: Int = 0
-var guidanceScale: Float = 7.5
-
+var guidanceScale: Float = 14
+var prompt: String = ""
+var negativePrompt: String = ""
+var resourcePath: String = "./models/DreamlikeDiffusion1"
 
 router.get("/") { request, response, next in
+
+    if request.queryParameters["prompt"] != nil {
+        prompt = request.queryParameters["prompt"]!
+    }else{
+        response.send("No prompt provided")
+        return next()
+    }
+
+    if request.queryParameters["negativePrompt"] != nil {
+        negativePrompt = request.queryParameters["negativePrompt"]!
+    }
 
     response.headers["Content-Type"] = "image/png"
 
@@ -28,7 +39,6 @@ router.get("/") { request, response, next in
         let computeUnits: ComputeUnits = .all
         config.computeUnits = computeUnits.asMLComputeUnits
 
-        let resourcePath: String = "./DreamlikeDiffusion1"
         let resourceURL = URL(filePath: resourcePath)
 
         let pipeline = try StableDiffusionPipeline(resourcesAt: resourceURL,
@@ -45,7 +55,7 @@ router.get("/") { request, response, next in
 
         let images = try pipeline.generateImages(
                 prompt: prompt,
-                negativePrompt: "",
+                negativePrompt: negativePrompt,
                 imageCount: imageCount,
                 stepCount: stepCount,
                 seed: seed,
@@ -80,6 +90,7 @@ router.get("/") { request, response, next in
 
 Kitura.addHTTPServer(onPort: 8080, with: router)
 Kitura.run()
+print("Open http://localhost:8080?prompt=cat&negativePrompt=dog")
 
 extension String: Error {}
 let runningOnMac = ProcessInfo.processInfo.isMacCatalystApp
@@ -113,40 +124,6 @@ enum ComputeUnits: String, CaseIterable {
     }
 }
 
-func saveImages(
-        _ images: [CGImage?],
-        step: Int? = nil,
-        logNames: Bool = false
-) throws -> Int {
-    let url = URL(filePath: outputPath)
-    var saved = 0
-    for i in 0 ..< images.count {
-
-        guard let image = images[i] else {
-            if logNames {
-                print("Failed to save image \(i)")
-            }
-            continue
-        }
-
-        let name = imageName(i, step: step)
-        let fileURL = url.appending(path:name)
-
-        guard let dest = CGImageDestinationCreateWithURL(fileURL as CFURL, UTType.png.identifier as CFString, 1, nil) else {
-            throw RunError.saving("Failed to create destination for \(fileURL)")
-        }
-        CGImageDestinationAddImage(dest, image, nil)
-        if !CGImageDestinationFinalize(dest) {
-            throw RunError.saving("Failed to save \(fileURL)")
-        }
-        if logNames {
-            print("Saved \(fileURL)")
-        }
-        saved += 1
-    }
-    return saved
-}
-
 @available(macOS 13.1, *)
 func handleProgress(
         _ progress: StableDiffusionPipeline.Progress,
@@ -159,28 +136,5 @@ func handleProgress(
     print(String(format: "median: %.2f, ", 1.0/sampleTimer.median))
     print(String(format: "last %.2f", 1.0/sampleTimer.allSamples.last!))
     print("] step/sec")
-
-    if saveEvery > 0, progress.step % saveEvery == 0 {
-        let saveCount = (try? saveImages(progress.currentImages, step: progress.step)) ?? 0
-        print(" saved \(saveCount) image\(saveCount != 1 ? "s" : "")")
-    }
     print("\n")
-}
-
-func imageName(_ sample: Int, step: Int? = nil) -> String {
-    let fileCharLimit = 75
-    var name = prompt.prefix(fileCharLimit).replacingOccurrences(of: " ", with: "_")
-    if imageCount != 1 {
-        name += ".\(sample)"
-    }
-
-    name += ".\(seed)"
-
-    if let step = step {
-        name += ".\(step)"
-    } else {
-        name += ".final"
-    }
-    name += ".png"
-    return name
 }

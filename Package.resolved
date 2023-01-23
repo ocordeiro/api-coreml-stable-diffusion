@@ -74,15 +74,6 @@
         }
       },
       {
-        "package": "Path.swift",
-        "repositoryURL": "https://github.com/mxcl/Path.swift.git",
-        "state": {
-          "branch": null,
-          "revision": "9c6f807b0a76be0e27aecc908bc6f173400d839e",
-          "version": "1.4.0"
-        }
-      },
-      {
         "package": "swift-argument-parser",
         "repositoryURL": "https://github.com/apple/swift-argument-parser.git",
         "state": {
@@ -107,15 +98,6 @@
           "branch": null,
           "revision": "28ec01815c0aea9236f92982ca8d351e7112a4a0",
           "version": "1.3.201"
-        }
-      },
-      {
-        "package": "ZIPFoundation",
-        "repositoryURL": "https://github.com/weichsel/ZIPFoundation",
-        "state": {
-          "branch": null,
-          "revision": "43ec568034b3731101dbf7670765d671c30f54f3",
-          "version": "0.9.16"
         }
       }
     ]

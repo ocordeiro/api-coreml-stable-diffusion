@@ -9,8 +9,6 @@ let package = Package(
         dependencies: [
             .package(url: "https://github.com/Kitura/Kitura", from: "2.9.0"),
             .package(url: "https://github.com/apple/ml-stable-diffusion.git", .branch("main")),
-            .package(url: "https://github.com/mxcl/Path.swift.git", from: "1.4.0"),
-            .package(url: "https://github.com/weichsel/ZIPFoundation", from: "0.9.16"),
         ],
         targets: [
             .target(
@@ -18,8 +16,6 @@ let package = Package(
                     dependencies: [
                         "Kitura",
                         "StableDiffusion",
-                        "Path",
-                        "ZIPFoundation",
                     ]),
 
         ]
